@@ -33,21 +33,6 @@ What makes BMesh so powerful is its ability to represent complex, **non-manifold
 
 `EXT_mesh_bmesh` allows for the preservation of models where multiple faces meet at a single edge, ensuring the artist's intent is maintained.
 
-### Subdivision Surface Support
-
-Building on the minimal OpenSubdiv requirements, EXT_mesh_bmesh integrates subdivision surface data directly into the BMesh structure using attributes:
-
-- **Edge Creases**: Stored as `CREASE` attribute on edges (f32 sharpness value per edge)
-- **Vertex Creases**: Stored as `CREASE` attribute on vertices (f32 sharpness value per vertex)
-- **Holes**: Stored as `HOLES` attribute on faces (u8 flag, 1=holes, 0=regular faces)
-- **Face Topology**: Complete face connectivity preserved in BMesh structure
-
-This approach follows BMesh philosophy by storing subdivision data as attributes on topological elements, enabling direct compatibility with OpenSubdiv and other subdivision surface implementations while maintaining clean integration with the mesh topology.
-
-### Sparse Accessors for Coarse Attributes
-
-**Sparse accessors** are strongly recommended for compressing coarse mesh attributes in EXT_mesh_bmesh. Sparse accessors work by storing a base set of values for the full attribute array plus sparse overrides specifying only non-default values at specific indices.
-
 ## Key Features
 
 ### Buffer-Based Storage
@@ -56,7 +41,7 @@ This approach follows BMesh philosophy by storing subdivision data as attributes
 - **Standard Attributes**: Uses glTF 2.0 attribute naming conventions (TEXCOORD_0, etc.)
 - **Non-manifold Support**: Complete support for non-manifold edges and vertices
 
-## Extension Structure
+### Extension Structure
 
 The EXT_mesh_bmesh extension integrates seamlessly into glTF 2.0 primitives, storing complete BMesh topology in buffer views for optimal performance. Below is the maximal data structure showing all possible features, including OpenSubdiv subdivision surface attributes.
 
@@ -160,7 +145,7 @@ The EXT_mesh_bmesh extension integrates seamlessly into glTF 2.0 primitives, sto
 }
 ```
 
-### Key Features in Maximal Structure
+### Key Features in Structure
 
 **OpenSubdiv Subdivision Surface Integration:**
 
@@ -180,9 +165,24 @@ The EXT_mesh_bmesh extension integrates seamlessly into glTF 2.0 primitives, sto
 - TEXCOORD_0, COLOR_0 for loops (per-corner attributes)
 - JOINTS_0, WEIGHTS_0 for skinning
 
-## Implicit Triangle Fan Algorithm
+### Implicit Triangle Fan Algorithm
 
 Building on FB_ngon_encoding principles with BMesh enhancements:
+
+### Subdivision Surface Support
+
+Building on the minimal OpenSubdiv requirements, EXT_mesh_bmesh integrates subdivision surface data directly into the BMesh structure using attributes:
+
+- **Edge Creases**: Stored as `CREASE` attribute on edges (f32 sharpness value per edge)
+- **Vertex Creases**: Stored as `CREASE` attribute on vertices (f32 sharpness value per vertex)
+- **Holes**: Stored as `HOLES` attribute on faces (u8 flag, 1=holes, 0=regular faces)
+- **Face Topology**: Complete face connectivity preserved in BMesh structure
+
+This approach follows BMesh philosophy by storing subdivision data as attributes on topological elements, enabling direct compatibility with OpenSubdiv and other subdivision surface implementations while maintaining clean integration with the mesh topology.
+
+### Sparse Accessors for Coarse Attributes
+
+**Sparse accessors** are strongly recommended for compressing coarse mesh attributes in EXT_mesh_bmesh. Sparse accessors work by storing a base set of values for the full attribute array plus sparse overrides specifying only non-default values at specific indices.
 
 ### Core Principle
 
@@ -191,6 +191,12 @@ Like FB_ngon_encoding, the **order of triangles and per-triangle vertex indices*
 - For each BMesh face `f`, choose one identifying vertex `v(f)`
 - Break the face into a triangle fan, all anchored at `v(f)`
 - **Ensure `v(f) != v(f')` for consecutive faces** (mandatory requirement for unambiguous reconstruction)
+
+### Design Decision: No Per-Face Materials
+
+Per-face materials were considered and intentionally excluded from EXT_mesh_bmesh.
+
+EXT_mesh_bmesh focuses purely on **topology preservation** rather than solving the material assignment problem, which is better handled at the glTF primitive and node levels.
 
 ### Encoding Process
 
@@ -255,7 +261,7 @@ For arrays with variable length (face vertices, edges, loops), data is stored as
 
 All EXT_mesh_bmesh implementations must support:
 
-1. **Buffer-Based Storage**: All topology data in glTF buffers for performance
+1. **Buffer-Based Storage**: All topology data in glTF buffers
 2. **glTF 2.0 Compliance**: Standard buffer views, accessors, and attribute naming
 3. **Triangle Fan Compatibility**: Maintains FB_ngon_encoding reconstruction principles
 4. **Complete Topology**: Full BMesh reconstruction with vertices, edges, loops, faces
@@ -495,9 +501,3 @@ The following BMesh structures are preserved through buffer-based encoding:
 - **Edge-Face**: One-to-many (edge shared by multiple faces, enables non-manifold)
 - **Face-Loop**: One-to-many (face has loops for each corner)
 - **Loop Navigation**: Circular lists around faces and radially around edges
-
-## Design Decision: No Per-Face Materials
-
-Per-face materials were considered and intentionally excluded from EXT_mesh_bmesh.
-
-EXT_mesh_bmesh focuses purely on **topology preservation** rather than solving the material assignment problem, which is better handled at the glTF primitive and node levels.

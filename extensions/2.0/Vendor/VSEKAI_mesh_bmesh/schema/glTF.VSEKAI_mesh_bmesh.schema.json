@@ -1,6 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema",
-    "title": "EXT_mesh_bmesh glTF extension",
+    "title": "VSEKAI_mesh_bmesh glTF extension",
     "type": "object",
     "description": "glTF extension for BMesh encoding with buffer-based storage for optimal performance",
     "allOf": [
